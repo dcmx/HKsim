@@ -4,7 +4,7 @@
 
 ## How to compile and run:
  
- 1. Check our repository.
+ 1. Check out repository.
  2. Install dependencies:
 	- \# apt install libgl-dev
 	- \# apt install libglu-dev
