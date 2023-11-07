@@ -1,0 +1,66 @@
+#!/bin/bash
+
+FILE=${1:-"data.txt"}
+FROM=${2:-3}
+TO=${3:-15}
+
+mkdir -p "./figures/"
+
+gnuplot <<EOF
+set style line 11 lc rgb '#808080' lt 1
+set border 3 back ls 11
+set tics nomirror out scale 0.75
+set arrow from graph 1,0 to graph 1.05,0 size screen 0.025,15,60 filled ls 11
+set arrow from graph 0,1 to graph 0,1.05 size screen 0.025,15,60 filled ls 11
+
+set style line 12 lc rgb'#808080' lt 0 lw 1
+set grid back ls 12
+set datafile separator ","
+
+set style line 1 lc rgb '#0080f0' lt 1 pt 7 ps 0.5 lw 2
+set style line 3 lc rgb '#f08000' lt 1 pt 7 ps 0.5 lw 2
+
+set style line 10 lc rgb '#0080f0' lt 1 pt 7 ps 2 lw 0
+set style line 30 lc rgb '#f08000' lt 1 pt 7 ps 2 lw 0
+
+set ylabel 'normalized convergence time'
+set xlabel 'number of agents \$n\$'
+set title ''
+
+set terminal epslatex size 3.33333in,2.222222in
+set output "figures/plot1.tex"
+set lmargin at screen 0.15
+set bmargin at screen 0.15
+set rmargin at screen 0.95
+set tmargin at screen 0.95
+
+set format y "\$%.0F\$"
+set xtics 8
+set mxtics 2
+set ytics 1
+set mytics 2
+
+set key width -20
+set key samplen 2
+set key at screen 0.5,0.9
+set style data boxplot
+
+plot \
+1/0 w p t "Dumbbell" ls 10,\
+1/0 w p t "Path" ls 30,\
+for [i=$FROM:$TO]\
+"<grep \"DumbbellMaxDist\" \"$FILE\"" using ((\$1 == 4*i) ? \$1 : 1 / 0):(\$2 / \$1 / \$1 / \$1) ls 1 t "", \
+for [i=$FROM:$TO]\
+"<grep \"PathEqDist\" \"$FILE\"" using ((\$1 == 4*i) ? \$1 : 1 / 0):(\$2 / \$1 / \$1 / \$1) ls 3 t ""
+
+EOF
+
+pdflatex -jobname=simple <<EOF
+\documentclass{scrartcl}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\begin{document}
+\input{figures/plot1.tex}
+\end{document}
+EOF
+rm -f simple.log simple.aux
